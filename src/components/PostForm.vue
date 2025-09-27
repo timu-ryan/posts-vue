@@ -48,7 +48,6 @@ export default {
   form {
     display: flex;
     flex-direction: column;
-    border-bottom: 1px solid gray;
   }
 
   .btn_form {
