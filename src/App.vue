@@ -93,7 +93,8 @@
   }
 
   .app {
-    margin: 0 10px;
+    padding: 0 10px;
+    overflow-x: hidden;
   }
 
   .btn_create {
