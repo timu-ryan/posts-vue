@@ -29,6 +29,19 @@
       v-if="!isPostsLoading"
     />
     <div v-else>Loading...</div>
+    <div class="page__wrapper">
+      <div
+        v-for="pageNumber in totalPages"
+        :key="pageNumber"
+        class="page"
+        :class="{
+          'page_current': page === pageNumber
+        }"
+        @click="changePage(pageNumber)"
+      >
+        {{ pageNumber }}
+      </div>
+    </div>
   </div>
 </template>
 
@@ -50,6 +63,9 @@
         isPostsLoading: false,
         selectedSort: '',
         searchQuery: '',
+        page: 1,
+        limit: 10,
+        totalPages: 0,
         sortOptions: [
           {value: 'title', name: 'by title'},
           {value: 'body', name: 'by content'},
@@ -67,14 +83,24 @@
       showDialog() {
         this.dialogVisible = true
       },
+      changePage(pageNumber) {
+        this.page = pageNumber;
+      },
       async fetchPosts() {
         try {
           this.isPostsLoading = true;
-          const res = await axios.get('https://jsonplaceholder.typicode.com/posts?_limit=10')
+          const res = await axios.get('https://jsonplaceholder.typicode.com/posts', {
+            params: {
+              _page: this.page,
+              _limit: this.limit,
+            }
+          })
+          this.totalPages = Math.ceil(res.headers['x-total-count'] / this.limit);
           this.posts = res.data
-          this.isPostsLoading = false
         } catch (e) {
           alert(e.message)
+        } finally {
+          this.isPostsLoading = false;
         }
       }
     },
@@ -90,7 +116,9 @@
       }
     },
     watch: {
-
+      page() {
+        this.fetchPosts()
+      }
     }
   }
 </script>
@@ -109,6 +137,21 @@
 
   .btn_create {
     margin: 10px 0;
+  }
+
+  .page__wrapper {
+    display: flex;
+    margin: 15px 0;
+    gap: 5px;
+  }
+
+  .page {
+    padding: 10px;
+    border: 1px solid gray;
+  }
+
+  .page_current {
+    background-color: rgba(128, 128, 128, 0.5);
   }
 
 </style>
