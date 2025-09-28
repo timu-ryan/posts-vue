@@ -2,6 +2,7 @@
   <div>
     <h1>Posts page</h1>
     <my-input
+        v-focus
         v-model="searchQuery"
         placeholder="Search..."
     />
@@ -29,20 +30,7 @@
         v-if="!isPostsLoading"
     />
     <div v-else>Loading...</div>
-    <div ref="observer" class="observer"></div>
-    <!--    <div class="page__wrapper">-->
-    <!--      <div-->
-    <!--        v-for="pageNumber in totalPages"-->
-    <!--        :key="pageNumber"-->
-    <!--        class="page"-->
-    <!--        :class="{-->
-    <!--          'page_current': page === pageNumber-->
-    <!--        }"-->
-    <!--        @click="changePage(pageNumber)"-->
-    <!--      >-->
-    <!--        {{ pageNumber }}-->
-    <!--      </div>-->
-    <!--    </div>-->
+    <div v-intersection="loadMorePosts" class="observer"></div>
   </div>
 </template>
 
@@ -84,9 +72,6 @@ export default {
     showDialog() {
       this.dialogVisible = true
     },
-    // changePage(pageNumber) {
-    //   this.page = pageNumber;
-    // },
     async fetchPosts() {
       try {
         this.isPostsLoading = true;
@@ -122,20 +107,6 @@ export default {
   },
   mounted() {
     this.fetchPosts()
-
-    const options = {
-      rootMargin: "0px",
-      scrollMargin: "0px",
-      threshold: 1.0,
-    };
-    const callback = (entries, observer) => {
-      if(entries[0].isIntersecting && this.page < this.totalPages) {
-        this.loadMorePosts();
-      }
-    }
-
-    const observer = new IntersectionObserver(callback, options);
-    observer.observe(this.$refs.observer)
   },
   computed: {
     sortedPosts() {
@@ -146,9 +117,7 @@ export default {
     }
   },
   watch: {
-    // page() {
-    //   this.fetchPosts()
-    // }
+
   }
 }
 </script>
