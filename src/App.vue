@@ -29,19 +29,20 @@
       v-if="!isPostsLoading"
     />
     <div v-else>Loading...</div>
-    <div class="page__wrapper">
-      <div
-        v-for="pageNumber in totalPages"
-        :key="pageNumber"
-        class="page"
-        :class="{
-          'page_current': page === pageNumber
-        }"
-        @click="changePage(pageNumber)"
-      >
-        {{ pageNumber }}
-      </div>
-    </div>
+    <div ref="observer" class="observer"></div>
+<!--    <div class="page__wrapper">-->
+<!--      <div-->
+<!--        v-for="pageNumber in totalPages"-->
+<!--        :key="pageNumber"-->
+<!--        class="page"-->
+<!--        :class="{-->
+<!--          'page_current': page === pageNumber-->
+<!--        }"-->
+<!--        @click="changePage(pageNumber)"-->
+<!--      >-->
+<!--        {{ pageNumber }}-->
+<!--      </div>-->
+<!--    </div>-->
   </div>
 </template>
 
@@ -83,9 +84,9 @@
       showDialog() {
         this.dialogVisible = true
       },
-      changePage(pageNumber) {
-        this.page = pageNumber;
-      },
+      // changePage(pageNumber) {
+      //   this.page = pageNumber;
+      // },
       async fetchPosts() {
         try {
           this.isPostsLoading = true;
@@ -102,10 +103,39 @@
         } finally {
           this.isPostsLoading = false;
         }
-      }
+      },
+      async loadMorePosts() {
+        try {
+          this.page += 1;
+          const res = await axios.get('https://jsonplaceholder.typicode.com/posts', {
+            params: {
+              _page: this.page,
+              _limit: this.limit,
+            }
+          })
+          this.totalPages = Math.ceil(res.headers['x-total-count'] / this.limit);
+          this.posts = [...this.posts, ...res.data]
+        } catch (e) {
+          alert(e.message)
+        }
+      },
     },
     mounted() {
       this.fetchPosts()
+
+      const options = {
+        rootMargin: "0px",
+        scrollMargin: "0px",
+        threshold: 1.0,
+      };
+      const callback = (entries, observer) => {
+        if(entries[0].isIntersecting && this.page < this.totalPages) {
+          this.loadMorePosts();
+        }
+      }
+
+      const observer = new IntersectionObserver(callback, options);
+      observer.observe(this.$refs.observer)
     },
     computed: {
       sortedPosts() {
@@ -116,9 +146,9 @@
       }
     },
     watch: {
-      page() {
-        this.fetchPosts()
-      }
+      // page() {
+      //   this.fetchPosts()
+      // }
     }
   }
 </script>
@@ -152,6 +182,11 @@
 
   .page_current {
     background-color: rgba(128, 128, 128, 0.5);
+  }
+
+  .observer {
+    height: 30px;
+    background: grey;
   }
 
 </style>
